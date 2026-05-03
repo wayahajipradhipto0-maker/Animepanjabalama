@@ -13,8 +13,6 @@
         body { background:var(--bg); color:var(--text); transition:0.3s; }
       .card { background:var(--card); }
       .modal { background:rgba(0,0,0,0.95); }
-      .loader { border:4px solid #f3f3f3; border-top:4px solid #dc2626; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; }
-        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
         iframe { aspect-ratio: 16/9; }
     </style>
 </head>
@@ -26,18 +24,17 @@
         </div>
 
         <div class="flex flex-wrap gap-2 mb-4">
-            <input id="search" placeholder="Cari anime buat ditonton..." class="flex-1 p-3 rounded card" onkeyup="debounceCari()">
-            <select id="genre" class="p-3 rounded card" onchange="loadAnime()">
+            <input id="search" placeholder="Cari anime buat ditonton..." class="flex-1 p-3 rounded card" onkeyup="cariLokal()">
+            <select id="genre" class="p-3 rounded card" onchange="filterGenre()">
                 <option value="">Semua Genre</option>
-                <option value="1">Action</option><option value="2">Adventure</option><option value="4">Comedy</option>
-                <option value="8">Drama</option><option value="10">Fantasy</option><option value="22">Romance</option>
-                <option value="24">Sci-Fi</option><option value="37">Supernatural</option>
+                <option value="Action">Action</option><option value="Adventure">Adventure</option>
+                <option value="Comedy">Comedy</option><option value="Drama">Drama</option>
+                <option value="Fantasy">Fantasy</option><option value="Romance">Romance</option>
+                <option value="Sci-Fi">Sci-Fi</option>
             </select>
         </div>
         
-        <div id="loading" class="flex justify-center py-20"><div class="loader"></div></div>
-        <div id="error" class="hidden text-center py-10 text-red-500">Gagal load. Klik tombol refresh di bawah ↓</div>
-        <button id="refresh" onclick="loadAnime()" class="hidden mx-auto mb-4 bg-red-600 px-6 py-2 rounded font-bold">🔄 Refresh</button>
+        <div id="status" class="text-center text-sm text-gray-400 mb-4">Mode Offline: Menampilkan anime populer</div>
         <div id="list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         
         <footer class="mt-12 text-center text-sm text-gray-500">
@@ -53,34 +50,7 @@
     </div>
 
 <script>
-let timeout;
-const API_URLS = [
-    'https://api.jikan.moe/v4',
-    'https://corsproxy.io/?https://api.jikan.moe/v4'
-];
-
-async function fetchWithFallback(endpoint) {
-    for (let base of API_URLS) {
-        try {
-            const res = await fetch(base + endpoint);
-            if (res.ok) return await res.json();
-        } catch(e) { continue; }
-    }
-    throw new Error('Semua API gagal');
-}
-
-async function loadAnime() {
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('error').classList.add('hidden');
-    document.getElementById('refresh').classList.add('hidden');
-    document.getElementById('list').innerHTML = '';
-    
-    let q = document.getElementById('search').value;
-    let g = document.getElementById('genre').value;
-    let endpoint = `/anime?limit=24&sfw=true`;
-    if(q) endpoint += `&q=${q}`;
-    if(g) endpoint += `&genres=${g}`;
-    if(!q &&!g) endpoint = `/top/anime?limit=24&sfw=true`;
-    
-    try {
-        let
+// DATA CADANGAN - BIAR LANGSUNG MUNCUL ANTI LOADING
+const ANIME_DATA = [
+  {title:"Sousou no Frieren",score:9.27,episodes:28,genres:["Adventure","Drama","Fantasy"],synopsis:"Elf mage Frieren berpetualang setelah kematian party hero.",image:"https://cdn.myanimelist.net/images/anime/1015/138006.jpg",trailer:"https://www.youtube.com/embed/Iwr1aLEDpe4",status:"Finished Airing"},
+  {title:"One Piece",score:8.72,episodes:1100,genres:["Action","Adventure","Comedy"],synopsis:"Luffy mencari One

@@ -2,77 +2,86 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Anime Pajabalam - Nonton Anime Legal Gratis</title>
-    <meta name="description" content="Katalog anime legal terlengkap. Link langsung ke Muse Indonesia & Bstation.">
+    <title>Anime Pajabalam - Nonton Trailer & Legal Streaming</title>
+    <meta name="description" content="Nonton trailer anime + link legal ke Muse Indonesia & Bstation">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/188/188987.png">
     <style>
         :root { --bg:#111827; --card:#1f2937; --text:#fff; }
-       .light { --bg:#f3f4f6; --card:#fff; --text:#111827; }
+      .light { --bg:#f3f4f6; --card:#fff; --text:#111827; }
         body { background:var(--bg); color:var(--text); transition:0.3s; }
-       .card { background:var(--card); }
-       .modal { background:rgba(0,0,0,0.9); }
-       .loader { border:4px solid #f3f3f3; border-top:4px solid #dc2626; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; }
+      .card { background:var(--card); }
+      .modal { background:rgba(0,0,0,0.95); }
+      .loader { border:4px solid #f3f3f3; border-top:4px solid #dc2626; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; }
         @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        iframe { aspect-ratio: 16/9; }
     </style>
 </head>
 <body>
     <div class="max-w-7xl mx-auto p-4">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl md:text-3xl font-bold">🔥 ANIME PAJABALAM</h1>
-            <button onclick="toggleMode()" id="modeBtn" class="px-4 py-2 rounded bg-gray-700 font-bold">☀️ Light</button>
+            <button onclick="toggleMode()" id="modeBtn" class="px-4 py-2 rounded bg-gray-700 font-bold">☀️</button>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-4">
-            <input id="search" placeholder="Cari One Piece, Naruto..." class="flex-1 p-3 rounded card" onkeyup="debounceCari()">
+            <input id="search" placeholder="Cari anime buat ditonton..." class="flex-1 p-3 rounded card" onkeyup="debounceCari()">
             <select id="genre" class="p-3 rounded card" onchange="loadAnime()">
                 <option value="">Semua Genre</option>
                 <option value="1">Action</option><option value="2">Adventure</option><option value="4">Comedy</option>
-                <option value="8">Drama</option><option value="10">Fantasy</option><option value="14">Horror</option>
-                <option value="7">Mystery</option><option value="22">Romance</option><option value="24">Sci-Fi</option>
-                <option value="36">Slice of Life</option><option value="30">Sports</option><option value="37">Supernatural</option>
+                <option value="8">Drama</option><option value="10">Fantasy</option><option value="22">Romance</option>
+                <option value="24">Sci-Fi</option><option value="37">Supernatural</option>
             </select>
-        </div>
-
-        <div class="flex gap-2 mb-6 overflow-x-auto">
-            <button onclick="setTab('top')" id="tab-top" class="px-4 py-2 rounded bg-red-600 font-bold whitespace-nowrap">🔥 Trending</button>
-            <button onclick="setTab('airing')" id="tab-airing" class="px-4 py-2 rounded card font-bold whitespace-nowrap">📺 Ongoing</button>
-            <button onclick="setTab('upcoming')" id="tab-upcoming" class="px-4 py-2 rounded card font-bold whitespace-nowrap">🔜 Upcoming</button>
         </div>
         
         <div id="loading" class="flex justify-center py-20"><div class="loader"></div></div>
         <div id="list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         
         <footer class="mt-12 text-center text-sm text-gray-500">
-            <p>© 2026 Anime Pajabalam | Legal Katalog Anime</p>
-            <p>Data by Jikan API | Video milik Muse Indonesia & Bstation</p>
+            <p>© 2026 Anime Pajabalam | Trailer by YouTube | Streaming legal via Muse & Bstation</p>
         </footer>
     </div>
 
     <div id="modal" class="modal fixed inset-0 hidden items-center justify-center p-4 z-50" onclick="tutupModal()">
-        <div class="card max-w-3xl w-full rounded-lg p-6 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="card max-w-4xl w-full rounded-lg p-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div id="modal-content"></div>
-            <button onclick="tutupModal()" class="mt-4 w-full bg-red-600 hover:bg-red-700 py-2 rounded font-bold">Tutup</button>
+            <button onclick="tutupModal()" class="mt-4 w-full bg-red-600 hover:bg-red-700 py-2 rounded font-bold">Tutup Player</button>
         </div>
     </div>
 
 <script>
-let timeout, currentTab = 'top';
-const tabs = {top:'top/anime', airing:'top/anime?filter=airing', upcoming:'top/anime?filter=upcoming'};
+let timeout;
 
 async function loadAnime() {
     document.getElementById('loading').style.display = 'flex';
     document.getElementById('list').innerHTML = '';
     let q = document.getElementById('search').value;
     let g = document.getElementById('genre').value;
-    let url = `https://api.jikan.moe/v4/`;
+    let url = `https://api.jikan.moe/v4/anime?limit=24&sfw=true`;
+    if(q) url += `&q=${q}`;
+    if(g) url += `&genres=${g}`;
+    if(!q &&!g) url = `https://api.jikan.moe/v4/top/anime?limit=24&sfw=true`;
     
-    if(q || g) {
-        url += `anime?limit=24&sfw=true`;
-        if(q) url += `&q=${q}`;
-        if(g) url += `&genres=${g}`;
-    } else {
-        url += `${tabs[currentTab]}&limit=24&sfw=true`;
+    try {
+        let res = await fetch(url);
+        let data = await res.json();
+        tampilkan(data.data || []);
+    } catch(e) {
+        document.getElementById('list').innerHTML = '<p class="col-span-full text-center">Gagal load. Refresh halaman.</p>';
     }
-    
+    document.getElementById('loading').style.display = 'none';
+}
+
+function tampilkan(animeList) {
+    document.getElementById('list').innerHTML = animeList.map(a => `
+        <div class="card rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition duration-200" onclick='bukaPlayer(${JSON.stringify(a).replace(/'/g,"&apos;")})'>
+            <div class="relative">
+                <img src="${a.images.jpg.large_image_url || a.images.jpg.image_url}" class="w-full h-64 object-cover" loading="lazy">
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition">
+                    <svg class="w-12 h-12" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+            </div>
+            <div class="p-3">
+                <h3 class="font-bold text-sm truncate mb-1">${a.title}</h3>
+                <div class

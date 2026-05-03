@@ -36,6 +36,8 @@
         </div>
         
         <div id="loading" class="flex justify-center py-20"><div class="loader"></div></div>
+        <div id="error" class="hidden text-center py-10 text-red-500">Gagal load. Klik tombol refresh di bawah ↓</div>
+        <button id="refresh" onclick="loadAnime()" class="hidden mx-auto mb-4 bg-red-600 px-6 py-2 rounded font-bold">🔄 Refresh</button>
         <div id="list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
         
         <footer class="mt-12 text-center text-sm text-gray-500">
@@ -44,7 +46,7 @@
     </div>
 
     <div id="modal" class="modal fixed inset-0 hidden items-center justify-center p-4 z-50" onclick="tutupModal()">
-        <div class="card max-w-4xl w-full rounded-lg p-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="card max-w-4xl w-full rounded-lg p-4 max-h- overflow-y-auto" onclick="event.stopPropagation()">
             <div id="modal-content"></div>
             <button onclick="tutupModal()" class="mt-4 w-full bg-red-600 hover:bg-red-700 py-2 rounded font-bold">Tutup Player</button>
         </div>
@@ -52,36 +54,33 @@
 
 <script>
 let timeout;
+const API_URLS = [
+    'https://api.jikan.moe/v4',
+    'https://corsproxy.io/?https://api.jikan.moe/v4'
+];
+
+async function fetchWithFallback(endpoint) {
+    for (let base of API_URLS) {
+        try {
+            const res = await fetch(base + endpoint);
+            if (res.ok) return await res.json();
+        } catch(e) { continue; }
+    }
+    throw new Error('Semua API gagal');
+}
 
 async function loadAnime() {
     document.getElementById('loading').style.display = 'flex';
+    document.getElementById('error').classList.add('hidden');
+    document.getElementById('refresh').classList.add('hidden');
     document.getElementById('list').innerHTML = '';
+    
     let q = document.getElementById('search').value;
     let g = document.getElementById('genre').value;
-    let url = `https://api.jikan.moe/v4/anime?limit=24&sfw=true`;
-    if(q) url += `&q=${q}`;
-    if(g) url += `&genres=${g}`;
-    if(!q &&!g) url = `https://api.jikan.moe/v4/top/anime?limit=24&sfw=true`;
+    let endpoint = `/anime?limit=24&sfw=true`;
+    if(q) endpoint += `&q=${q}`;
+    if(g) endpoint += `&genres=${g}`;
+    if(!q &&!g) endpoint = `/top/anime?limit=24&sfw=true`;
     
     try {
-        let res = await fetch(url);
-        let data = await res.json();
-        tampilkan(data.data || []);
-    } catch(e) {
-        document.getElementById('list').innerHTML = '<p class="col-span-full text-center">Gagal load. Refresh halaman.</p>';
-    }
-    document.getElementById('loading').style.display = 'none';
-}
-
-function tampilkan(animeList) {
-    document.getElementById('list').innerHTML = animeList.map(a => `
-        <div class="card rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition duration-200" onclick='bukaPlayer(${JSON.stringify(a).replace(/'/g,"&apos;")})'>
-            <div class="relative">
-                <img src="${a.images.jpg.large_image_url || a.images.jpg.image_url}" class="w-full h-64 object-cover" loading="lazy">
-                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition">
-                    <svg class="w-12 h-12" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-            </div>
-            <div class="p-3">
-                <h3 class="font-bold text-sm truncate mb-1">${a.title}</h3>
-                <div class
+        let

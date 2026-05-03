@@ -1,59 +1,106 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Anime Pajabalam - Nonton Trailer & Legal Streaming</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Pajabalam V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/188/188987.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --bg:#111827; --card:#1f2937; --text:#fff; }
-     .light { --bg:#f3f4f6; --card:#fff; --text:#111827; }
-        body { background:var(--bg); color:var(--text); transition:0.3s; }
-     .card { background:var(--card); }
-     .modal { background:rgba(0,0,0,0.95); }
-        iframe { aspect-ratio: 16/9; }
+        .modal { background: rgba(0,0,0,0.8); }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white">
     <div class="max-w-7xl mx-auto p-4">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl md:text-3xl font-bold">🔥 ANIME PAJABALAM</h1>
-            <button onclick="toggleMode()" id="modeBtn" class="px-4 py-2 rounded bg-gray-700 font-bold">☀️</button>
-        </div>
-
+        <h1 class="text-3xl font-bold text-center mb-2">🔥 ANIME PAJABALAM V2 🔥</h1>
+        <p class="text-center text-gray-400 mb-6">Katalog Legal - Klik poster buat detail</p>
+        
         <div class="flex flex-wrap gap-2 mb-4">
-            <input id="search" placeholder="Cari anime buat ditonton..." class="flex-1 p-3 rounded card" onkeyup="cariLokal()">
-            <select id="genre" class="p-3 rounded card" onchange="filterGenre()">
+            <input id="search" placeholder="Cari anime..." class="flex-1 p-3 rounded bg-gray-800 text-white" onkeyup="debounceCari()">
+            <select id="genre" class="p-3 rounded bg-gray-800 text-white" onchange="loadAnime()">
                 <option value="">Semua Genre</option>
-                <option value="Action">Action</option><option value="Adventure">Adventure</option>
-                <option value="Comedy">Comedy</option><option value="Drama">Drama</option>
-                <option value="Fantasy">Fantasy</option><option value="Romance">Romance</option>
-                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="1">Action</option>
+                <option value="2">Adventure</option>
+                <option value="4">Comedy</option>
+                <option value="8">Drama</option>
+                <option value="10">Fantasy</option>
+                <option value="22">Romance</option>
+                <option value="24">Sci-Fi</option>
             </select>
         </div>
         
-        <div id="status" class="text-center text-sm text-green-400 mb-4">✅ 24 Anime Siap Ditonton</div>
+        <div id="loading" class="text-center py-10">Loading...</div>
         <div id="list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-        
-        <footer class="mt-12 text-center text-sm text-gray-500">
-            <p>© 2026 Anime Pajabalam | Trailer by YouTube | Streaming legal via Muse & Bstation</p>
-        </footer>
     </div>
 
-    <div id="modal" class="modal fixed inset-0 hidden items-center justify-center p-4 z-50" onclick="tutupModal()">
-        <div class="card max-w-4xl w-full rounded-lg p-4 max-h- overflow-y-auto" onclick="event.stopPropagation()">
+    <div id="modal" class="modal fixed inset-0 hidden items-center justify-center p-4" onclick="tutupModal()">
+        <div class="bg-gray-800 max-w-2xl w-full rounded-lg p-6" onclick="event.stopPropagation()">
             <div id="modal-content"></div>
-            <button onclick="tutupModal()" class="mt-4 w-full bg-red-600 hover:bg-red-700 py-2 rounded font-bold">Tutup Player</button>
+            <button onclick="tutupModal()" class="mt-4 w-full bg-red-600 py-2 rounded font-bold">Tutup</button>
         </div>
     </div>
 
 <script>
-const ANIME_DATA = [
-  {title:"Sousou no Frieren",score:9.27,episodes:28,genres:["Adventure","Drama","Fantasy"],synopsis:"Elf mage Frieren berpetualang setelah kematian party hero.",image:"https://i.imgur.com/8QZ9bL2.jpg",trailer:"https://www.youtube.com/embed/Iwr1aLEDpe4",status:"Finished Airing"},
-  {title:"One Piece",score:8.72,episodes:1100,genres:["Action","Adventure","Comedy"],synopsis:"Luffy mencari One Piece untuk jadi Raja Bajak Laut.",image:"https://i.imgur.com/KbJqD4x.jpg",trailer:"https://www.youtube.com/embed/MCb13LbVGE0",status:"Currently Airing"},
-  {title:"Attack on Titan",score:8.55,episodes:87,genres:["Action","Drama"],synopsis:"Eren melawan Titan untuk selamatkan umat manusia.",image:"https://i.imgur.com/3Z8iF3p.jpg",trailer:"https://www.youtube.com/embed/MGRm4IzK1SQ",status:"Finished Airing"},
-  {title:"Jujutsu Kaisen",score:8.62,episodes:47,genres:["Action","Fantasy"],synopsis:"Yuji Itadori makan jari Sukuna dan jadi penyihir Jujutsu.",image:"https://i.imgur.com/7Y3Q8rA.jpg",trailer:"https://www.youtube.com/embed/pkKu9hLT-t8",status:"Finished Airing"},
-  {title:"Demon Slayer",score:8.54,episodes:55,genres:["Action","Fantasy"],synopsis:"Tanjiro jadi pembasmi iblis untuk selamatkan Nezuko.",image:"https://i.imgur.com/9vXcWzL.jpg",trailer:"https://www.youtube.com/embed/VQGCKyvzIM4",status:"Finished Airing"},
-  {title:"Naruto Shippuden",score:8.26,episodes:500,genres:["Action","Adventure"],synopsis:"Naruto dewasa melawan Akatsuki dan perang ninja.",image:"https://i.imgur.com/2vN8bQm.jpg",trailer:"https://www.youtube.com/embed/22R0j8UKRzY",status:"Finished Airing"},
-  {title:"Spy x Family",score:8.57,episodes:37,genres:["Action
+let timeout;
+async function loadAnime() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('list').innerHTML = '';
+    let q = document.getElementById('search').value;
+    let g = document.getElementById('genre').value;
+    let url = `https://api.jikan.moe/v4/anime?limit=24&sfw=true`;
+    if(q) url += `&q=${q}`;
+    if(g) url += `&genres=${g}`;
+    if(!q && !g) url = `https://api.jikan.moe/v4/top/anime?limit=24`;
+    
+    try {
+        let res = await fetch(url);
+        let data = await res.json();
+        tampilkan(data.data);
+    } catch(e) {
+        document.getElementById('list').innerHTML = '<p class="col-span-full text-center">Gagal load. Coba refresh.</p>';
+    }
+    document.getElementById('loading').style.display = 'none';
+}
+
+function tampilkan(animeList) {
+    document.getElementById('list').innerHTML = animeList.map(a => `
+        <div class="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition" onclick='bukaModal(${JSON.stringify(a).replace(/'/g,"&apos;")})'>
+            <img src="${a.images.jpg.image_url}" class="w-full h-64 object-cover" loading="lazy">
+            <div class="p-3">
+                <h3 class="font-bold text-sm truncate">${a.title}</h3>
+                <p class="text-yellow-400 text-xs">⭐ ${a.score || 'N/A'}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function bukaModal(a) {
+    document.getElementById('modal-content').innerHTML = `
+        <div class="flex gap-4">
+            <img src="${a.images.jpg.image_url}" class="w-32 rounded">
+            <div class="flex-1">
+                <h2 class="text-xl font-bold mb-2">${a.title}</h2>
+                <p class="text-sm text-gray-300 mb-3">${a.synopsis ? a.synopsis.substring(0,200)+'...' : 'No synopsis'}</p>
+                <p class="text-xs mb-1">⭐ Score: ${a.score || 'N/A'} | 📺 Episodes: ${a.episodes || '?'}</p>
+                <div class="flex gap-2 mt-3">
+                    <a href="https://www.youtube.com/@MuseIndonesia/search?query=${encodeURIComponent(a.title)}" target="_blank" class="flex-1 bg-red-600 text-center py-2 rounded text-sm font-bold">Muse YT</a>
+                    <a href="https://www.bilibili.tv/id/search?keyword=${encodeURIComponent(a.title)}" target="_blank" class="flex-1 bg-blue-500 text-center py-2 rounded text-sm font-bold">Bstation</a>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').classList.add('flex');
+}
+
+function tutupModal() {
+    document.getElementById('modal').classList.add('hidden');
+}
+
+function debounceCari() {
+    clearTimeout(timeout);
+    timeout = setTimeout(loadAnime, 500);
+}
+
+loadAnime();
+</script>
+</body>
+</html>
